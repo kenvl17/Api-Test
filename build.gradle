@@ -1,0 +1,89 @@
+plugins {
+    id 'org.jetbrains.kotlin.jvm' version '1.8.21'
+    id "org.jetbrains.kotlin.plugin.serialization" version "1.8.21"
+    id("io.qameta.allure") version "2.11.2"
+    id 'java'
+}
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    ktlint
+}
+
+dependencies {
+
+
+    ktlint("com.pinterest:ktlint:0.46.1") {
+        attributes {
+            attribute(Bundling.BUNDLING_ATTRIBUTE, getObjects().named(Bundling, Bundling.EXTERNAL))
+        }
+    }
+    testImplementation 'org.testng:testng:7.1.0'
+    implementation("io.ktor:ktor-client-core:2.0.0")
+    implementation("io.ktor:ktor-client-cio:2.0.0")
+    implementation "org.apache.poi:poi:5.2.3"
+    implementation "org.apache.poi:poi-ooxml:5.2.3"
+    implementation "com.fasterxml.jackson.module:jackson-module-kotlin:2.13.0"
+    implementation("io.qameta.allure:allure-plugin-api:2.18.1")
+    implementation("io.qameta.allure:allure-rest-assured:2.18.1")
+    implementation "org.hamcrest:hamcrest:2.2"
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
+    implementation "org.jetbrains.kotlin:kotlin-stdlib"
+    implementation 'io.github.serpro69:kotlin-faker:1.11.0'
+    testImplementation("io.qameta.allure:allure-junit5:2.18.1")
+    implementation("io.qameta.allure:allure-okhttp3:2.10.0")
+    implementation 'com.google.code.gson:gson:2.9.0'
+    implementation("io.github.cdimascio:dotenv-kotlin:6.3.1")
+    testImplementation 'org.junit.platform:junit-platform-suite-engine:1.8.2'
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:1.5.20")
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.7.0'
+    testImplementation("io.rest-assured:kotlin-extensions:4.4.0")
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.7.0'
+    implementation 'org.apache.logging.log4j:log4j-core:2.20.0'
+    implementation 'org.apache.logging.log4j:log4j-api:2.20.0'
+    implementation "org.slf4j:slf4j-simple:1.7.9"
+    testImplementation("io.kotest:kotest-assertions-core:5.3.0")
+    testImplementation("io.kotest:kotest-assertions-json:5.3.0")
+    testImplementation "org.assertj:assertj-core:3.24.2"
+
+}
+
+
+tasks.test {
+    useJUnitPlatform()
+    forkEvery = 1
+    maxParallelForks = Runtime.runtime.availableProcessors()
+    testLogging {
+        events "failed"
+        exceptionFormat "short"
+
+        debug {
+            events "started", "skipped", "failed"
+            exceptionFormat "full"
+        }
+
+        info.events = ["failed", "skipped"]
+    }
+}
+
+
+task ktlint(type: JavaExec, group: "verification") {
+    description = "Check Kotlin code style."
+    classpath = configurations.ktlint
+    mainClass.set("com.pinterest.ktlint.Main")
+    args "src/**/*.kt"
+}
+check.dependsOn ktlint
+
+task ktlintFormat(type: JavaExec, group: "formatting") {
+    description = "Fix Kotlin code style deviations."
+    classpath = configurations.ktlint
+    mainClass.set("com.pinterest.ktlint.Main")
+    args "-F", "src/**/*.kt"
+}
